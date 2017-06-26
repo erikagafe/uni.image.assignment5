@@ -2,7 +2,7 @@
 function ApplyGaussMixEM
     
     % read image with 3 channels!
-    [file, path, image, img_size] = read_image('inputEx5.jpg');
+    [file, path, image, img_size] = read_image('Select input file for segmentation');
  
     % Number of dimensions
     n_dims = img_size(3);
@@ -11,13 +11,22 @@ function ApplyGaussMixEM
     % number of desired components (clusters)
     % vary this parameter to find an appropriate value for the input
     % image (Task )!!!
-    n_comp = 2;
+    n_comp = 10;
     %--------------------------------------------------------------------------
+    
+%     Describe the problems and observations that you made regarding the segmentation result?
+%     Gaussian Mixture Model is running on RGB, colors are created by the combination of red, blue and green. 
+%     Human eyes recognize the difference of color scales as being the same color, however; the computer cluster the colors depending their values on RGB.  
+%     There might be a red color with high Blue tones that might give a purple hue compared to a bright red. Using the Rubik´s Cube picture, 
+%     the best n cluster was 10, it clusters most of the colors correct. There were some discrepancies but it was due to lightning and high contrasts on the image. 
+    
+    
     
     % reshaping of vectors for input of EM
     trainVect = reshape(image, [img_size(1)*img_size(2),n_dims] );
     
     % sample the vectors to reduce amount of data
+    
     desired_number = 1000;
     step = img_size(1)*img_size(2) / desired_number; 
     indices = round(1:step:img_size(1)*img_size(2));
@@ -50,6 +59,32 @@ end
 %--------------------------------------------------------------------------
 %--------------------------------------------------------------------------
 
+function LnVectorProb = CalcLnVectorProb(model, trainVect)
+
+% IMPLEMENT THIS FUNCTION (TASK A.a)
+ 
+     LnVectorProb = []; 
+    
+     
+     sizeW = size(model.weight,1);
+     sizeV = size(trainVect,1);
+     
+     for i = 1:sizeW 
+         clusters =[];
+         cov = squeeze(model.covar(i,:,:));
+
+         for j = 1:sizeV  
+
+             logProb = log(model.weight(i))-0.5*(log(det(cov))+ (ctranspose(ctranspose(trainVect(j,:))- ctranspose(model.mean(i,:))))*inv(cov)*(ctranspose(trainVect(j,:))-(ctranspose(model.mean(i,:))))); 
+              
+             clusters = [clusters,logProb]; 
+              
+         end 
+         LnVectorProb = [LnVectorProb;clusters];         
+     end 
+ 
+
+end
 
 
 %--------------------------------------------------------------------------
